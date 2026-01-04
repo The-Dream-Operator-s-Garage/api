@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Pathos API</title>
+    <title>Pathos Cloud - Portal</title>
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -15,43 +16,227 @@
         <img src="/starnoise.svg" alt="Star noise background" class="background-image">
     </div>
     
-    <div class="container">
-        <div class="welcome-panel">
-            <div class="panel-glass">
-                <div class="panel-content">
-                    <div class="logo-container">
-                        <img src="/logo.png" alt="Pathos Logo" class="logo">
-                    </div>
-                    <h1 class="title-carved">Welcome to Pathos</h1>
-                    <p class="subtitle">Your journey begins here</p>
-                    <div class="greeting-box">
-                        <p class="greeting-text" id="greetingMessage">Loading greeting...</p>
-                    </div>
-                    <button class="refresh-btn" onclick="fetchGreeting()">Refresh Greeting</button>
-                </div>
+    <!-- Sticky Footer -->
+    <footer class="main-footer" id="footerContainer">
+        <!-- Footer component will be loaded here -->
+    </footer>
+    
+    <div class="main-content-box">
+        <div class="framer-container">
+            <div class="framer-glass" id="framerContainer">
+                <!-- Framer component will be loaded here -->
             </div>
         </div>
     </div>
 
     <script>
-        async function fetchGreeting() {
+        // Load footer component
+        async function loadFooterComponent() {
             try {
-                const response = await fetch('/api/greeting');
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('greetingMessage').textContent = data.message;
-                } else {
-                    document.getElementById('greetingMessage').textContent = 'Error loading greeting';
-                }
+                const response = await fetch('/footer-component.html');
+                const html = await response.text();
+                document.getElementById('footerContainer').innerHTML = html;
+                
+                // Initialize logo gradient animation after footer is loaded
+                initLogoGradient();
             } catch (error) {
-                console.error('Error fetching greeting:', error);
-                document.getElementById('greetingMessage').textContent = 'Error loading greeting';
+                console.error('Error loading footer component:', error);
             }
         }
 
-        // Fetch greeting on page load
-        fetchGreeting();
+        // Load framer component
+        async function loadFramerComponent() {
+            try {
+                const response = await fetch('/framer-component.html');
+                const html = await response.text();
+                document.getElementById('framerContainer').innerHTML = html;
+                
+                // Load auth component into appropriate window
+                await loadAuthComponent();
+                
+                // Initialize framer drag functionality
+                initFramerDrag();
+            } catch (error) {
+                console.error('Error loading framer component:', error);
+            }
+        }
+
+        // Load auth component
+        async function loadAuthComponent() {
+            try {
+                const response = await fetch('/auth-component.html');
+                const html = await response.text();
+                
+                // Determine which window to load auth into based on screen size
+                const isMobile = window.innerWidth <= 768;
+                const targetId = isMobile ? 'leftContent' : 'leftContent'; // top window uses leftContent
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    targetElement.innerHTML = `
+                        <div class="welcome-panel">
+                            <div class="panel-glass">
+                                <div class="panel-content">
+                                    ${html}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Attach event listeners after component is loaded
+                    attachAuthHandlers();
+                }
+            } catch (error) {
+                console.error('Error loading auth component:', error);
+            }
+        }
+
+        // Attach event handlers to auth component
+        function attachAuthHandlers() {
+            // Handle login form submission
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                console.log('Login attempt:', { username });
+                // API integration will be added later
+            });
+
+            // Handle secret form submission
+            document.getElementById('secretForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const secret = document.getElementById('secret').value;
+                console.log('Secret access attempt');
+                // API integration will be added later
+            });
+
+            // Handle QR button click
+            document.querySelector('.btn-qr').addEventListener('click', () => {
+                console.log('QR code scan initiated');
+                // API integration will be added later
+            });
+        }
+
+        // Initialize framer drag functionality
+        function initFramerDrag() {
+            const divider = document.getElementById('framerDivider');
+            const leftWindow = document.getElementById('leftWindow');
+            const rightWindow = document.getElementById('rightWindow');
+            const container = document.getElementById('framerContainer');
+            
+            let isDragging = false;
+            
+            divider.addEventListener('mousedown', startDrag);
+            divider.addEventListener('touchstart', startDrag);
+            
+            function startDrag(e) {
+                isDragging = true;
+                e.preventDefault();
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchmove', drag);
+                document.addEventListener('touchend', stopDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const containerRect = container.getBoundingClientRect();
+                const isMobile = window.innerWidth <= 768;
+                
+                if (isMobile) {
+                    // Vertical split for mobile
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const offsetY = clientY - containerRect.top;
+                    const percentage = (offsetY / containerRect.height) * 100;
+                    
+                    // Constrain between 10% and 90%
+                    const constrainedPercentage = Math.max(10, Math.min(90, percentage));
+                    
+                    leftWindow.style.height = `calc(${constrainedPercentage}% - 0.25rem)`;
+                    rightWindow.style.height = `calc(${100 - constrainedPercentage}% - 0.25rem)`;
+                    
+                    // Move divider to cursor position on mobile (vertically)
+                    divider.style.top = `${constrainedPercentage}%`;
+                } else {
+                    // Horizontal split for desktop
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const offsetX = clientX - containerRect.left;
+                    const percentage = (offsetX / containerRect.width) * 100;
+                    
+                    // Constrain between 10% and 90%
+                    const constrainedPercentage = Math.max(10, Math.min(90, percentage));
+                    
+                    leftWindow.style.width = `calc(${constrainedPercentage}% - 0.375rem)`;
+                    rightWindow.style.width = `calc(${100 - constrainedPercentage}% - 0.375rem)`;
+                    
+                    // Move divider to cursor position on desktop (horizontally)
+                    divider.style.left = `${constrainedPercentage}%`;
+                }
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('touchend', stopDrag);
+            }
+        }
+
+        // Load components on page load
+        loadFooterComponent();
+        loadFramerComponent();
+
+        // Initialize logo gradient animation
+        function initLogoGradient() {
+            const canvas = document.getElementById('logoCanvas');
+            const logo = document.getElementById('logo');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = logo.offsetWidth;
+                canvas.height = logo.offsetHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            let gradientOffset = 0;
+            function animateGradient() {
+                gradientOffset += 0.005;
+                if (gradientOffset > 1) gradientOffset = 0;
+                
+                const gradient = ctx.createLinearGradient(
+                    0, 0, 
+                    canvas.width, canvas.height
+                );
+                
+                const colors = ['#F9E9B8', '#F7D9C7', '#F1C9BF', '#EFE7DB', '#F6F1DE'];
+                colors.forEach((color, i) => {
+                    const position = (i / (colors.length - 1) + gradientOffset) % 1;
+                    gradient.addColorStop(position, color);
+                });
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.drawImage(logo, 0, 0, canvas.width, canvas.height);
+                ctx.globalCompositeOperation = 'source-over';
+                
+                requestAnimationFrame(animateGradient);
+            }
+            
+            logo.onload = () => {
+                animateGradient();
+            };
+            
+            if (logo.complete) {
+                animateGradient();
+            }
+        }
     </script>
 </body>
 </html>
-
