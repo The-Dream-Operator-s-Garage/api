@@ -1,0 +1,495 @@
+/* NODE VIEW Component Styles */
+/* Matching the light, minimalist aesthetic from the mockup */
+
+.node-view-panel {
+    width: 100%;
+    height: 100%;
+    padding: 0.5rem; /* Consistent padding on all sides */
+    background-image: url('/starnoise.svg') !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-color: #000000 !important; /* Black base from SVG */
+    margin: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    border-radius: 12px; /* Rounded borders */
+    position: relative;
+    overflow: hidden; /* Ensure rounded corners work with background */
+}
+
+.node-view-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0; /* No padding - fit slider shape exactly */
+    background: linear-gradient(135deg,
+        rgba(184, 221, 229, 0.4) 0%, /* gradient-turquoise */
+        rgba(193, 229, 217, 0.35) 25%, /* gradient-seafoam */
+        rgba(209, 232, 199, 0.3) 50%, /* gradient-mint */
+        rgba(225, 232, 184, 0.35) 75%, /* gradient-lime */
+        rgba(232, 224, 184, 0.4) 100% /* gradient-softyellow */
+    );
+    margin: 0 !important; /* Force no margins */
+    height: 100%;
+    border: 1px solid rgba(180, 175, 165, 0.5); /* Thin carved-in border */
+    border-radius: 12px; /* Match framer-window border-radius */
+    overflow: hidden;
+    box-sizing: border-box;
+    min-height: 0;
+    align-self: stretch;
+    flex: 1;
+    position: relative;
+    /* Carved-in effect with inset shadow */
+    box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.15),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Title elements now inside path-display-bar */
+.node-view-title-icon {
+    font-size: 1rem;
+    color: #6A6A6A;
+    opacity: 0.8;
+    flex-shrink: 0;
+}
+
+.node-view-title {
+    font-family: 'Nasalization', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: #4A4A4A;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    text-transform: uppercase;
+    font-weight: normal;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Path Control Bar */
+.node-view-path-bar {
+    position: relative; /* For absolute positioning of menu */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #F3EDDF; /* rgb(243, 237, 223) */
+    padding: 0.4rem 0.6rem; /* Reduced padding */
+    border-bottom: 1px solid rgba(180, 175, 165, 0.3);
+    gap: 0.6rem; /* Reduced gap */
+    border-radius: 12px 12px 0 0; /* Rounded top corners to match container */
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: 100%;
+    margin: 0;
+}
+
+.path-display-bar {
+    flex: 1;
+    background: #D0D0D0; /* Large grey bar */
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem; /* Reduced padding */
+    font-family: 'Courier New', monospace;
+    font-size: 0.65rem; /* Even smaller font */
+    color: #4A4A4A;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0; /* Allows flex shrinking */
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    /* Glass-carved effect with shiny top-left border */
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.path-display-bar::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border-radius: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.path-icon {
+    font-size: 0.9rem;
+    color: #6A6A6A;
+    opacity: 0.8;
+    flex-shrink: 0;
+}
+
+/* Path prefix removed */
+
+.path-content {
+    color: #3A3A3A;
+}
+
+/* Path Control Buttons - Right-aligned, tight spacing */
+.path-control-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.path-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.path-btn:hover {
+    background: rgba(200, 200, 200, 0.4);
+    transform: scale(1.05);
+}
+
+.path-btn:active {
+    transform: scale(0.95);
+}
+
+.path-btn .material-icons {
+    font-size: 18px;
+}
+
+/* Copy Button - Blue-ish */
+.path-btn-copy .material-icons {
+    color: #5B8BA8; /* Blue-ish from color palette */
+}
+
+.path-btn-copy:hover {
+    background: rgba(91, 139, 168, 0.15);
+}
+
+/* Refresh Button - Blue-green */
+.path-btn-refresh .material-icons {
+    color: #4F9B9B; /* Blue-green */
+}
+
+.path-btn-refresh:hover {
+    background: rgba(79, 155, 155, 0.15);
+}
+
+/* Pin Button - Red-ish */
+.path-btn-pin .material-icons {
+    color: #D36B6B; /* Red-ish from error color */
+}
+
+.path-btn-pin:hover {
+    background: rgba(211, 107, 107, 0.15);
+}
+
+.path-btn-pin.pinned .material-icons {
+    color: #B71C1C; /* Darker red when pinned */
+}
+
+/* Save Button - Green-ish */
+.path-btn-save .material-icons {
+    color: #6FBF7B; /* Green-ish from success color */
+}
+
+.path-btn-save:hover {
+    background: rgba(111, 191, 123, 0.15);
+}
+
+.path-btn-save.saved .material-icons {
+    color: #4CAF50; /* Darker green when saved */
+}
+
+/* More Button - Gray */
+.path-btn-more .material-icons {
+    color: #8A8A82; /* Gray from accent-pebble */
+}
+
+.path-btn-more:hover {
+    background: rgba(138, 138, 130, 0.15);
+}
+
+/* Content Display Area */
+.node-view-content {
+    flex: 1;
+    background: #F3EDDF; /* rgb(243, 237, 223) */
+    padding: 0.75rem; /* Reduced padding */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Allow flex shrinking */
+    overflow: hidden; /* Prevent outer container from scrolling */
+    border-radius: 0 0 12px 12px; /* Rounded bottom corners to match container */
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+}
+
+.node-view-outer-gradient {
+    background: #F3EDDF; /* rgb(243, 237, 223) */
+}
+
+.node-view-display-box {
+    background: #D0D0D0; /* Same as path-display-bar */
+    /* Glass-carved effect with shiny top-left border */
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px; /* Consistent rounded corners */
+    padding: 1rem 1.5rem 1rem 1rem; /* Extra right padding for handle */
+    flex: 1; /* Take full available height */
+    position: relative; /* For scroll handle positioning */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Keep scrolling on the inner JSON element */
+    min-height: 0; /* Allow flex shrinking */
+    max-height: 100%; /* Ensure it doesn't exceed parent */
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.node-view-display-box::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border-radius: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Make the JSON text itself scrollable */
+.node-view-json {
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding-right: 0.75rem; /* Keep text clear of the handle */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 200, 200, 0.5) transparent;
+    display: block;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+/* Custom scrollbar for webkit browsers */
+.node-view-json::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.node-view-json::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.node-view-json::-webkit-scrollbar-thumb {
+    background: rgba(200, 200, 200, 0.5);
+    border-radius: 4px;
+}
+
+.node-view-json::-webkit-scrollbar-thumb:hover {
+    background: rgba(200, 200, 200, 0.7);
+}
+
+/* Draggable scroll handle */
+.node-view-scroll-handle {
+    position: absolute;
+    right: 6px;
+    top: 0;
+    width: 14px;
+    background: rgba(145, 145, 145, 0.75);
+    border: 1px solid rgba(200, 200, 200, 0.65);
+    border-radius: 8px;
+    cursor: grab;
+    z-index: 2;
+    display: none; /* Shown when content overflows */
+    transition: background 0.2s ease;
+}
+
+.node-view-scroll-handle:hover {
+    background: rgba(130, 130, 130, 0.85);
+}
+
+.node-view-scroll-handle.dragging {
+    cursor: grabbing;
+    background: rgba(140, 140, 140, 0.9);
+}
+
+/* JSON Display with Syntax Highlighting */
+.node-view-json {
+    margin: 0;
+    padding: 0 0.75rem 0 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem; /* Slightly smaller */
+    line-height: 1.3; /* Reduced line spacing - much tighter */
+    white-space: pre;
+    word-wrap: normal;
+    color: #3A3A3A;
+    background: #D0D0D0; /* Same as path-display-bar */
+    text-align: left; /* Left align, not centered */
+}
+
+/* Hierarchical shadow for JSON nesting levels */
+.node-view-json {
+    display: block;
+}
+
+.node-view-json > div {
+    display: block;
+    text-align: left;
+}
+
+.node-view-json .json-level-0 {
+    padding-left: 0;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.node-view-json .json-level-1 {
+    padding-left: 2rem;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.08);
+}
+
+.node-view-json .json-level-2 {
+    padding-left: 4rem;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.12);
+}
+
+.node-view-json .json-level-3 {
+    padding-left: 6rem;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.16);
+}
+
+.node-view-json .json-level-4 {
+    padding-left: 8rem;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.20);
+}
+
+.node-view-json .json-level-5 {
+    padding-left: 10rem;
+    text-shadow: 0 0 7px rgba(0, 0, 0, 0.24);
+}
+
+/* Deeper levels get progressively darker shadows */
+.node-view-json .json-level-6 {
+    padding-left: 12rem;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.28);
+}
+
+.node-view-json .json-level-7 {
+    padding-left: 14rem;
+    text-shadow: 0 0 9px rgba(0, 0, 0, 0.32);
+}
+
+.node-view-json .json-level-8 {
+    padding-left: 16rem;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.36);
+}
+
+/* JSON Syntax Highlighting - Matching previous requirements */
+.node-view-json .json-key {
+    color: #8EC6FF; /* Metallic pastel blue */
+    font-weight: bold;
+}
+
+.node-view-json .json-value {
+    color: #3A3A3A; /* Metallic gray-black */
+    font-weight: normal;
+}
+
+.node-view-json .json-string {
+    color: #3A3A3A;
+}
+
+.node-view-json .json-number {
+    color: #3A3A3A;
+}
+
+.node-view-json .json-boolean {
+    color: #3A3A3A;
+}
+
+.node-view-json .json-null {
+    color: #3A3A3A;
+}
+
+.node-view-json .json-symbol {
+    color: rgba(150, 150, 150, 0.25); /* Pale color - barely visible */
+}
+
+/* More Menu Dropdown */
+.node-view-more-menu {
+    position: absolute;
+    right: 0.75rem;
+    top: calc(100% + 0.25rem);
+    background: #FFFFFF;
+    border: 1px solid rgba(200, 200, 200, 0.5);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    min-width: 180px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.more-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    color: #4A4A4A;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+
+.more-menu-item:hover {
+    background: rgba(240, 240, 240, 0.8);
+}
+
+.more-menu-item .material-icons {
+    font-size: 20px;
+    color: #6A6A6A;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .node-view-path-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .path-control-buttons {
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+    
+    .path-display-bar {
+        font-size: 0.75rem;
+    }
+}

@@ -10,168 +10,1423 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/components/node-view.css">
+    <style>
+        /* Success/Error notification styles */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-family: 'Nasalization', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 50%, #3d8b40 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 50%, #b71c1c 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .notification .material-icons {
+            font-size: 1.25rem;
+        }
+        
+        /* Loading state for buttons */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1rem;
+            height: 1rem;
+            margin: -0.5rem 0 0 -0.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-loading span {
+            visibility: hidden;
+        }
+        
+        /* Form error messages */
+        .form-error {
+            display: block;
+            color: #f44336;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        /* Node View styles are now in /components/node-view.css */
+    </style>
 </head>
 <body>
+    <!-- Notification container -->
+    <div id="notification" class="notification">
+        <span class="material-icons" id="notificationIcon">check_circle</span>
+        <span id="notificationText">Success!</span>
+    </div>
+
     <div class="background-container">
         <img src="/starnoise.svg" alt="Star noise background" class="background-image">
     </div>
     
-    <!-- Sticky Footer -->
-    <footer class="main-footer" id="footerContainer">
-        <!-- Footer component will be loaded here -->
+    <!-- Sticky Footer (temporarily hidden) -->
+    <footer class="main-footer" style="display: none;">
+        <div class="footer-window">
+            <div class="footer-branding">
+                <div class="logo-container">
+                    <img src="/logo.png" alt="Pathos Logo" class="logo" id="logo">
+                    <canvas id="logoCanvas" class="logo-canvas"></canvas>
+                </div>
+                <h1 class="brand-text">pathos.cloud</h1>
+            </div>
+        </div>
     </footer>
     
+    <!-- Main Content Box with Framer -->
     <div class="main-content-box">
-        <div class="framer-container">
-            <div class="framer-glass" id="framerContainer">
-                <!-- Framer component will be loaded here -->
+        <div class="framer-container" id="framerContainer">
+            <div class="framer-glass">
+                <!-- Left Window (Auth on Desktop) / Top Window (Auth on Mobile) -->
+                <div class="framer-window framer-window-left" id="leftWindow">
+                    <div class="window-content" id="leftContent">
+                        <div class="welcome-panel">
+                            <div class="panel-glass">
+                                <div class="panel-content">
+                                    
+                                    <!-- Section I: User/Password Login -->
+                                    <div class="login-section" id="loginSection">
+                                        <h2 class="section-title">GET IN</h2>
+                                        <form id="loginForm" class="login-form">
+                                            <div class="form-group">
+                                                <div class="input-wrapper">
+                                                    <input 
+                                                        type="text" 
+                                                        id="username" 
+                                                        name="username" 
+                                                        class="form-input" 
+                                                        placeholder="username"
+                                                        required
+                                                        autocomplete="username"
+                                                    >
+                                                    <span class="material-icons input-icon">person</span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="input-wrapper">
+                                                    <input 
+                                                        type="password" 
+                                                        id="password" 
+                                                        name="password" 
+                                                        class="form-input" 
+                                                        placeholder="password"
+                                                        required
+                                                        autocomplete="current-password"
+                                                    >
+                                                    <span class="material-icons input-icon">lock</span>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn-primary btn-metallic" id="loginBtn">
+                                                <span>Login</span>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="section-divider" id="sectionDivider">
+                                        <button type="button" class="btn-qr btn-metallic" id="qrBtn">
+                                            <span class="material-icons">qr_code</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Section II: Secret Access / Registration -->
+                                    <div class="secret-section" id="secretSection">
+                                        <h2 class="section-title" id="secretTitle">I'VE GOT A SECRET</h2>
+                                        <form id="secretForm" class="secret-form">
+                                            <div class="form-group">
+                                                <div class="input-wrapper">
+                                                    <input 
+                                                        type="text" 
+                                                        id="secret" 
+                                                        name="secret" 
+                                                        class="form-input" 
+                                                        placeholder="secret"
+                                                        required
+                                                    >
+                                                    <span class="material-icons input-icon">key</span>
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="btn-secondary btn-metallic" id="secretBtn">
+                                                <span>Go</span>
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Registration Form (hidden initially) -->
+                                        <form id="registerForm" class="register-form" style="display: none;">
+                                            <div class="form-group">
+                                                <div class="input-wrapper">
+                                                    <input 
+                                                        type="text" 
+                                                        id="registerUsername" 
+                                                        name="username" 
+                                                        class="form-input" 
+                                                        placeholder="username"
+                                                        required
+                                                        maxlength="255"
+                                                        autocomplete="username"
+                                                    >
+                                                    <span class="material-icons input-icon">person</span>
+                                    </div>
+                                                <small class="form-error" id="usernameError"></small>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="input-wrapper">
+                                                    <input 
+                                                        type="password" 
+                                                        id="registerPassword" 
+                                                        name="password" 
+                                                        class="form-input" 
+                                                        placeholder="password"
+                                                        required
+                                                        autocomplete="new-password"
+                                                    >
+                                                    <span class="material-icons input-icon">lock</span>
+                                                </div>
+                                                <small class="form-error" id="passwordError"></small>
+                                            </div>
+                                            <button type="submit" class="btn-primary btn-metallic" id="registerBtn">
+                                                <span>Register</span>
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Node View Component placeholder -->
+                                        <div id="userInfoDisplay" style="display: none;">
+                                            <!-- NODE VIEW component will be loaded here -->
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Draggable Divider -->
+                <div class="framer-divider" id="framerDivider">
+                    <span class="material-icons">drag_indicator</span>
+                </div>
+                
+                <!-- Right Window (Logo on Desktop) / Bottom Window (Logo on Mobile) -->
+                <div class="framer-window framer-window-right" id="rightWindow">
+                    <div class="window-content">
+                        <div class="welcome-panel">
+                            <div class="panel-glass">
+                            <div class="panel-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Load footer component
-        async function loadFooterComponent() {
-            try {
-                const response = await fetch('/footer-component.html');
-                const html = await response.text();
-                document.getElementById('footerContainer').innerHTML = html;
-                
-                // Initialize logo gradient animation after footer is loaded
-                initLogoGradient();
-            } catch (error) {
-                console.error('Error loading footer component:', error);
+        // API Base URL
+        const API_BASE = '/api/identity';
+        
+        // Make showNotification global for auth component
+        window.showNotification = function(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notificationIcon');
+            const text = document.getElementById('notificationText');
+            
+            // Set content
+            text.textContent = message;
+            icon.textContent = type === 'success' ? 'check_circle' : 'error';
+            
+            // Set class
+            notification.className = `notification ${type}`;
+            
+            // Show
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Hide after delay
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, type === 'success' ? 3000 : 5000);
+        };
+        
+        // Set button loading state
+        function setButtonLoading(button, loading) {
+            if (loading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
             }
         }
-
-        // Load framer component
-        async function loadFramerComponent() {
-            try {
-                const response = await fetch('/framer-component.html');
-                const html = await response.text();
-                document.getElementById('framerContainer').innerHTML = html;
-                
-                // Load auth component into appropriate window
-                await loadAuthComponent();
-                
-                // Initialize framer drag functionality
-                initFramerDrag();
-            } catch (error) {
-                console.error('Error loading framer component:', error);
+        
+        // Store token in localStorage
+        function storeToken(token) {
+            if (!token) {
+                console.error('storeToken: Attempted to store null/undefined token');
+                return;
             }
+            localStorage.setItem('pathos_token', token);
+            console.log('storeToken: Token stored successfully, length:', token.length);
         }
-
-        // Load auth component
-        async function loadAuthComponent() {
+        
+        // Get stored token
+        function getToken() {
+            const token = localStorage.getItem('pathos_token');
+            if (token) {
+                console.log('getToken: Token retrieved, length:', token.length);
+            } else {
+                console.log('getToken: No token found in localStorage');
+            }
+            return token;
+        }
+        
+        // Clear token
+        function clearToken() {
+            localStorage.removeItem('pathos_token');
+            console.log('clearToken: Token cleared from localStorage');
+        }
+        
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (!username || !password) {
+                showNotification('Please enter username and password', 'error');
+                return;
+            }
+            
+            setButtonLoading(loginBtn, true);
+            
             try {
-                const response = await fetch('/auth-component.html');
-                const html = await response.text();
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
                 
-                // Determine which window to load auth into based on screen size
-                const isMobile = window.innerWidth <= 768;
-                const targetId = isMobile ? 'leftContent' : 'leftContent'; // top window uses leftContent
-                const targetElement = document.getElementById(targetId);
+                const data = await response.json();
                 
-                if (targetElement) {
-                    targetElement.innerHTML = `
-                        <div class="welcome-panel">
-                            <div class="panel-glass">
-                                <div class="panel-content">
-                                    ${html}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                if (data.success) {
+                    console.log('✅ Login successful, storing token');
+                    storeToken(data.token);
+                    console.log('✅ Token stored in localStorage');
+                    showNotification('Login successful! Welcome back.', 'success');
+                    console.log('✅ Logged in as:', data.entity);
                     
-                    // Attach event listeners after component is loaded
-                    attachAuthHandlers();
+                    // Hide auth forms immediately - NODE VIEW is default
+                    hideAuthForms();
+                    
+                    // Fetch and display user info
+                    try {
+                        console.log('📡 Fetching user info for entity ID:', data.entity.id);
+                        const userInfoResponse = await fetch(`${API_BASE}/user/${data.entity.id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${data.token}`
+                            }
+                        });
+                        
+                        console.log('📦 User info response status:', userInfoResponse.status);
+                        const userInfoData = await userInfoResponse.json();
+                        console.log('📦 User info data:', userInfoData);
+                        
+                        if (userInfoData.success) {
+                            console.log('✅ User info fetched successfully, showing NODE VIEW');
+                            showUserInfo(userInfoData.data);
+                } else {
+                            console.error('❌ Failed to fetch user info:', userInfoData);
+                            showNotification('Login successful, but could not fetch user info', 'error');
+                        }
+                    } catch (err) {
+                        console.error('❌ Error fetching user info:', err);
+                        showNotification('Login successful, but could not fetch user info', 'error');
+                    }
+                } else {
+                    console.error('❌ Login failed:', data);
+                    const errorMsg = data.error?.message || 'Login failed';
+                    console.error('Error details:', data.error);
+                    showNotification(errorMsg, 'error');
+                    
+                    // Check if it's a credentials error
+                    if (data.error?.code === 40103) {
+                        console.log('⚠️ Invalid credentials - user may not exist or password is wrong');
+                    }
                 }
             } catch (error) {
-                console.error('Error loading auth component:', error);
+                console.error('Login error:', error);
+                showNotification('Connection error. Please try again.', 'error');
+            } finally {
+                setButtonLoading(loginBtn, false);
+            }
+        });
+
+        // Store current secret for registration
+        let currentSecret = null;
+        
+        // Show registration form
+        function showRegistrationForm() {
+            document.getElementById('secretForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('secretTitle').textContent = 'REGISTER';
+            document.getElementById('userInfoDisplay').style.display = 'none';
+        }
+        
+        // Format JSON with syntax highlighting
+        function formatJSON(json) {
+            const jsonString = JSON.stringify(json, null, 2);
+            let formatted = '';
+            let inString = false;
+            let escapeNext = false;
+            let currentKey = '';
+            
+            for (let i = 0; i < jsonString.length; i++) {
+                const char = jsonString[i];
+                const nextChar = jsonString[i + 1];
+                
+                if (escapeNext) {
+                    formatted += char;
+                    escapeNext = false;
+                    continue;
+                }
+                
+                if (char === '\\') {
+                    formatted += char;
+                    escapeNext = true;
+                    continue;
+                }
+                
+                if (char === '"' && !escapeNext) {
+                    inString = !inString;
+                    formatted += char;
+                    continue;
+                }
+                
+                if (inString) {
+                    formatted += char;
+                    continue;
+                }
+                
+                // Handle symbols (braces, brackets, colons, commas)
+                if (['{', '}', '[', ']', ':', ','].includes(char)) {
+                    formatted += `<span class="json-symbol">${char}</span>`;
+                    continue;
+                }
+                
+                // Handle keys (text before colon)
+                if (char === ':') {
+                    formatted += `<span class="json-key">${currentKey}</span>`;
+                    currentKey = '';
+                    formatted += `<span class="json-symbol">:</span>`;
+                    continue;
+                }
+                
+                // Collect key characters
+                if (char.match(/[a-zA-Z_$]/) && nextChar !== ':') {
+                    currentKey += char;
+                    continue;
+                }
+                
+                // Handle values
+                if (char.match(/[0-9]/)) {
+                    formatted += `<span class="json-value json-number">${char}</span>`;
+                } else if (char === 't' || char === 'f' || char === 'n') {
+                    // Handle true, false, null
+                    const word = jsonString.substring(i, i + 4);
+                    if (word === 'true' || word === 'null') {
+                        formatted += `<span class="json-value json-boolean">${word}</span>`;
+                        i += word.length - 1;
+                    } else if (jsonString.substring(i, i + 5) === 'false') {
+                        formatted += `<span class="json-value json-boolean">false</span>`;
+                        i += 4;
+                    } else {
+                        formatted += char;
+                    }
+                } else {
+                    formatted += char;
+                }
+            }
+            
+            return formatted;
+        }
+        
+        // Enhanced JSON formatting with proper key/value detection
+        function formatJSONAdvanced(json) {
+            const jsonString = JSON.stringify(json, null, 2);
+            let formatted = '';
+            let inString = false;
+            let escapeNext = false;
+            let currentKey = '';
+            let currentValue = '';
+            let inKey = false;
+            let inValue = false;
+            
+            for (let i = 0; i < jsonString.length; i++) {
+                const char = jsonString[i];
+                const prevChar = i > 0 ? jsonString[i - 1] : '';
+                const nextChar = i < jsonString.length - 1 ? jsonString[i + 1] : '';
+                
+                if (escapeNext) {
+                    formatted += char;
+                    escapeNext = false;
+                    continue;
+                }
+                
+                if (char === '\\') {
+                    formatted += char;
+                    escapeNext = true;
+                    continue;
+                }
+                
+                // Handle string boundaries
+                if (char === '"' && !escapeNext) {
+                    if (!inString) {
+                        inString = true;
+                        // Check if this is a key (followed by colon) or value
+                        const afterQuote = jsonString.substring(i + 1).match(/^([^"]*)"\s*:/);
+                        if (afterQuote) {
+                            inKey = true;
+                            formatted += '<span class="json-symbol">"</span>';
+                        } else {
+                            inValue = true;
+                            formatted += '<span class="json-symbol">"</span>';
+                        }
+                    } else {
+                        inString = false;
+                        if (inKey) {
+                            formatted += '<span class="json-key">' + currentKey + '</span><span class="json-symbol">"</span>';
+                            currentKey = '';
+                            inKey = false;
+                        } else if (inValue) {
+                            formatted += '<span class="json-value json-string">' + currentValue + '</span><span class="json-symbol">"</span>';
+                            currentValue = '';
+                            inValue = false;
+                        } else {
+                            formatted += '<span class="json-symbol">"</span>';
+                        }
+                    }
+                    continue;
+                }
+                
+                if (inString) {
+                    if (inKey) {
+                        currentKey += char;
+                    } else if (inValue) {
+                        currentValue += char;
+                    } else {
+                        formatted += char;
+                    }
+                    continue;
+                }
+                
+                // Handle symbols (braces, brackets, colons, commas)
+                if (['{', '}', '[', ']'].includes(char)) {
+                    formatted += `<span class="json-symbol">${char}</span>`;
+                    continue;
+                }
+                
+                if (char === ':') {
+                    formatted += `<span class="json-symbol">:</span>`;
+                    continue;
+                }
+                
+                if (char === ',') {
+                    formatted += `<span class="json-symbol">,</span>`;
+                    continue;
+                }
+                
+                // Handle non-string values (numbers, booleans, null)
+                if (!inString && (char.match(/[0-9-]/) || char === 't' || char === 'f' || char === 'n')) {
+                    // Check for number
+                    if (char.match(/[0-9-]/)) {
+                        let numStr = char;
+                        let j = i + 1;
+                        while (j < jsonString.length && (jsonString[j].match(/[0-9.]/) || jsonString[j] === 'e' || jsonString[j] === 'E' || jsonString[j] === '+' || jsonString[j] === '-')) {
+                            numStr += jsonString[j];
+                            j++;
+                        }
+                        formatted += `<span class="json-value json-number">${numStr}</span>`;
+                        i = j - 1;
+                        continue;
+                    }
+                    
+                    // Check for true/false/null
+                    const remaining = jsonString.substring(i);
+                    if (remaining.startsWith('true')) {
+                        formatted += '<span class="json-value json-boolean">true</span>';
+                        i += 3;
+                        continue;
+                    } else if (remaining.startsWith('false')) {
+                        formatted += '<span class="json-value json-boolean">false</span>';
+                        i += 4;
+                        continue;
+                    } else if (remaining.startsWith('null')) {
+                        formatted += '<span class="json-value json-null">null</span>';
+                        i += 3;
+                        continue;
+                    }
+                }
+                
+                // Default: add character as-is (whitespace, etc.)
+                formatted += char;
+            }
+            
+            return formatted;
+        }
+        
+        // Show user info display and hide auth forms
+        async function showUserInfo(userData) {
+            // Hide all auth forms
+            hideAuthForms();
+            
+            // Use NodeView component if available
+            if (window.nodeViewInstance) {
+                // Generate path from user data
+                let path = '';
+                if (userData?.entity?.path) {
+                    path = userData.entity.path.replace(/^entities\//, '');
+                } else if (userData?.path) {
+                    path = userData.path.replace(/^entities\//, '');
+                }
+                
+                window.nodeViewInstance.show(userData, path);
+                
+                // Track current entity id for refresh
+                const entityId = userData?.entity?.id || userData?.id;
+                window.currentEntityId = entityId;
+                if (entityId) {
+                    try {
+                        // Show ancestor panel immediately with loading state
+                        if (window.ancestorNodeViewInstance) {
+                            window.ancestorNodeViewInstance.show({ status: 'Loading ancestor...' }, 'LOADING');
+                        }
+
+                        const token = getToken();
+                        if (token) {
+                            console.log('>>> Ancestor retrieval:: public/index.html - fetch start', { entityId });
+                            console.log('📡 Fetching ancestor info for entity ID:', entityId);
+                            const ancestorResponse = await fetch(`${API_BASE}/ancestor/${entityId}`, {
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+                            
+                            if (ancestorResponse.ok) {
+                                const ancestorData = await ancestorResponse.json();
+                                console.log('>>> Ancestor retrieval:: public/index.html - fetch ok', { success: ancestorData.success });
+                                if (ancestorData.success && ancestorData.data) {
+                                    console.log('>>> Ancestor retrieval:: public/index.html - render ancestor');
+                                    console.log('✅ Ancestor info fetched successfully');
+                                    // Show ancestor in right side node-view
+                                    if (window.ancestorNodeViewInstance) {
+                                        let ancestorPath = '';
+                                        if (ancestorData.data?.entity?.path) {
+                                            ancestorPath = ancestorData.data.entity.path.replace(/^entities\//, '');
+                                        }
+                                        window.currentAncestorEntityId = ancestorData.data?.entity?.id || null;
+                                        window.ancestorNodeViewInstance.show(ancestorData.data, ancestorPath);
+                                    }
+                                } else {
+                                    console.log('>>> Ancestor retrieval:: public/index.html - no ancestor in response');
+                                    console.log('ℹ️ Entity has no ancestor (pioneer entity)');
+                                    // Hide ancestor view if no ancestor
+                                    if (window.ancestorNodeViewInstance) {
+                                        window.ancestorNodeViewInstance.show({ status: 'No ancestor found' }, 'NO_ANCESTOR');
+                                    }
+                                }
+                            } else {
+                                console.log('>>> Ancestor retrieval:: public/index.html - fetch error', { status: ancestorResponse.status });
+                                console.log('ℹ️ No ancestor found or error:', ancestorResponse.status);
+                                // Hide ancestor view if error
+                                if (window.ancestorNodeViewInstance) {
+                                    window.ancestorNodeViewInstance.show({ status: 'Ancestor not available' }, 'NO_ANCESTOR');
+                                }
+                            }
+                        } else {
+                            console.log('>>> Ancestor retrieval:: public/index.html - no token');
+                            if (window.ancestorNodeViewInstance) {
+                                window.ancestorNodeViewInstance.hide();
+                            }
+                        }
+                    } catch (err) {
+                        console.log('>>> Ancestor retrieval:: public/index.html - exception', { message: err.message });
+                        console.error('❌ Error fetching ancestor info:', err);
+                        // Hide ancestor view on error
+                        if (window.ancestorNodeViewInstance) {
+                            window.ancestorNodeViewInstance.show({ status: 'Ancestor fetch error' }, 'ERROR');
+                        }
+                    }
+                }
+                
+                // Adjust splitter to 50/50 after showing NODE VIEW
+                setTimeout(() => {
+                    const isMobile = window.innerWidth <= 768;
+                    if (typeof window.setLayout === 'function') {
+                        window.setLayout(isMobile, 50);
+                    } else {
+                        // Trigger layout update via event
+                        const event = new CustomEvent('layoutUpdate', { detail: { percentage: 50 } });
+                        window.dispatchEvent(event);
+                    }
+                }, 100);
+            } else {
+                // Fallback to old display if component not loaded
+                const userInfoDisplay = document.getElementById('userInfoDisplay');
+                if (userInfoDisplay) {
+                    userInfoDisplay.style.display = 'block';
+                    const userInfoJson = document.getElementById('userInfoJson');
+                    if (userInfoJson && typeof formatJSONAdvanced === 'function') {
+                        userInfoJson.innerHTML = formatJSONAdvanced(userData);
+                    }
+                }
             }
         }
+        
+        // Make formatJSONAdvanced globally available for NodeView component
+        window.formatJSONAdvanced = formatJSONAdvanced;
 
-        // Attach event handlers to auth component
-        function attachAuthHandlers() {
-            // Handle login form submission
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                console.log('Login attempt:', { username });
-                // API integration will be added later
-            });
+        // Refresh node view data from the database
+        window.refreshNodeViewEntity = async function(containerId) {
+            const token = getToken();
+            if (!token) {
+                if (window.showNotification) {
+                    window.showNotification('No session token found', 'error');
+                }
+                if (window.nodeViewInstance) {
+                    window.nodeViewInstance.hide();
+                }
+                if (window.ancestorNodeViewInstance) {
+                    window.ancestorNodeViewInstance.hide();
+                }
+                window.currentEntityId = null;
+                window.currentAncestorEntityId = null;
+                return;
+            }
 
-            // Handle secret form submission
-            document.getElementById('secretForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const secret = document.getElementById('secret').value;
-                console.log('Secret access attempt');
-                // API integration will be added later
-            });
+            try {
+                if (containerId === 'ancestorNodeViewContainer') {
+                    if (!window.currentEntityId) {
+                        return;
+                    }
+                    const response = await fetch(`${API_BASE}/ancestor/${window.currentEntityId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.success && data.data && window.ancestorNodeViewInstance) {
+                        let ancestorPath = '';
+                        if (data.data?.entity?.path) {
+                            ancestorPath = data.data.entity.path.replace(/^entities\//, '');
+                        }
+                        window.currentAncestorEntityId = data.data?.entity?.id || null;
+                        window.ancestorNodeViewInstance.show(data.data, ancestorPath);
+                    }
+                } else {
+                    if (!window.currentEntityId) {
+                        return;
+                    }
+                    const response = await fetch(`${API_BASE}/user/${window.currentEntityId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.success && data.data && window.nodeViewInstance) {
+                        let path = '';
+                        if (data.data?.entity?.path) {
+                            path = data.data.entity.path.replace(/^entities\//, '');
+                        }
+                        window.nodeViewInstance.show(data.data, path);
+                    }
+                }
+            } catch (err) {
+                if (window.showNotification) {
+                    window.showNotification('Refresh failed', 'error');
+                }
+                console.error('Refresh entity error:', err);
+            }
+        };
 
-            // Handle QR button click
-            document.querySelector('.btn-qr').addEventListener('click', () => {
-                console.log('QR code scan initiated');
-                // API integration will be added later
-            });
+        // Handle secret form submission
+        document.getElementById('secretForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const secret = document.getElementById('secret').value.trim();
+            const secretBtn = document.getElementById('secretBtn');
+            
+            if (!secret) {
+                showNotification('Please enter a secret', 'error');
+                return;
+            }
+            
+            setButtonLoading(secretBtn, true);
+            
+            try {
+                // First, check if secret is valid and unused
+                const checkResponse = await fetch(`${API_BASE}/check-secret`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ secret })
+                });
+                
+                const checkData = await checkResponse.json();
+                
+                if (!checkData.success) {
+                    showNotification(checkData.error?.message || 'Invalid secret', 'error');
+                    return;
+                }
+                
+                if (!checkData.unused) {
+                    // Secret is valid but already used - try to login with it
+                    const loginResponse = await fetch(`${API_BASE}/secret`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ secret })
+                    });
+                    
+                    const loginData = await loginResponse.json();
+                    
+                    if (loginData.success) {
+                        console.log('✅ Secret login successful, storing token');
+                        storeToken(loginData.token);
+                        console.log('✅ Token stored in localStorage');
+                        showNotification('Secret verified! Access granted.', 'success');
+                        console.log('✅ Authenticated via secret:', loginData.entity);
+                        
+                        // Hide auth forms immediately - NODE VIEW is default
+                        hideAuthForms();
+                        
+                        // Fetch and display user info
+                        try {
+                            console.log('📡 Fetching user info for entity ID:', loginData.entity.id);
+                            const userInfoResponse = await fetch(`${API_BASE}/user/${loginData.entity.id}`, {
+                                headers: {
+                                    'Authorization': `Bearer ${loginData.token}`
+                                }
+                            });
+                            
+                            console.log('📦 User info response status:', userInfoResponse.status);
+                            const userInfoData = await userInfoResponse.json();
+                            console.log('📦 User info data:', userInfoData);
+                            
+                            if (userInfoData.success) {
+                                console.log('✅ User info fetched successfully, showing NODE VIEW');
+                                showUserInfo(userInfoData.data);
+                            } else {
+                                console.error('❌ Failed to fetch user info:', userInfoData);
+                                showNotification('Login successful, but could not fetch user info', 'error');
+                            }
+                        } catch (err) {
+                            console.error('❌ Error fetching user info:', err);
+                            showNotification('Login successful, but could not fetch user info', 'error');
+                        }
+                    } else {
+                        console.error('❌ Secret login failed:', loginData);
+                        showNotification(loginData.error?.message || 'Secret already used', 'error');
+                    }
+                    return;
+                }
+                
+                // Secret is valid and unused - show registration form
+                currentSecret = secret;
+                showRegistrationForm();
+                showNotification('Secret verified! Please complete registration.', 'success');
+                
+            } catch (error) {
+                console.error('Secret check error:', error);
+                showNotification('Connection error. Please try again.', 'error');
+            } finally {
+                setButtonLoading(secretBtn, false);
+            }
+        });
+        
+        // Handle registration form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            const usernameError = document.getElementById('usernameError');
+            const passwordError = document.getElementById('passwordError');
+            
+            // Clear previous errors
+            usernameError.textContent = '';
+            passwordError.textContent = '';
+            
+            // Validate username
+            if (!username) {
+                usernameError.textContent = 'Username is required';
+                return;
+            }
+            
+            if (username.length > 255) {
+                usernameError.textContent = 'Username must be 255 characters or less';
+                return;
+            }
+            
+            // Validate password
+            if (!password) {
+                passwordError.textContent = 'Password is required';
+                return;
+            }
+            
+            if (password.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                return;
+            }
+            
+            setButtonLoading(registerBtn, true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        secret: currentSecret,
+                        id: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('✅ Registration successful, storing token');
+                    storeToken(data.token);
+                    const storedToken = getToken();
+                    console.log('✅ Token stored in localStorage:', storedToken ? 'Token exists (' + storedToken.substring(0, 20) + '...)' : 'No token');
+                    showNotification('Registration successful!', 'success');
+                    
+                    // Hide auth forms immediately - NODE VIEW is default
+                    hideAuthForms();
+                    
+                    // Fetch user info
+                    console.log('📡 Fetching user info for entity ID:', data.entity.id);
+                    const userInfoResponse = await fetch(`${API_BASE}/user/${data.entity.id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${data.token}`
+                        }
+                    });
+                    
+                    console.log('📦 User info response status:', userInfoResponse.status);
+                    const userInfoData = await userInfoResponse.json();
+                    console.log('📦 User info data:', userInfoData);
+                    
+                    if (userInfoData.success) {
+                        console.log('✅ User info fetched successfully, showing NODE VIEW');
+                        showUserInfo(userInfoData.data);
+                } else {
+                        console.error('❌ Failed to fetch user info:', userInfoData);
+                        showNotification('Registration successful, but could not fetch user info', 'error');
+                    }
+                } else {
+                    console.error('❌ Registration failed:', data);
+                    showNotification(data.error?.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showNotification('Connection error. Please try again.', 'error');
+            } finally {
+                setButtonLoading(registerBtn, false);
+            }
+        });
+
+        // Handle QR button click
+        document.getElementById('qrBtn').addEventListener('click', () => {
+            showNotification('QR authentication coming soon!', 'success');
+        });
+
+        // Check if user is already logged in
+        async function checkAuthStatus() {
+            const token = getToken();
+            console.log('checkAuthStatus: Token from localStorage:', token ? 'Token exists' : 'No token');
+            
+            if (!token) {
+                // No token, ensure auth forms are visible
+                console.log('checkAuthStatus: No token found, showing auth forms');
+                showAuthForms();
+                return;
+            }
+            
+            try {
+                console.log('checkAuthStatus: Verifying token with server...');
+                const response = await fetch(`${API_BASE}/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('checkAuthStatus: Verify response status:', response.status);
+                const data = await response.json();
+                console.log('checkAuthStatus: Verify response data:', data);
+                
+                if (data.success && data.user) {
+                    console.log('✅ Token verified successfully. User:', data.user);
+                    
+                    // Hide auth forms IMMEDIATELY - this is the default state when authenticated
+                    // NODE VIEW is the default view when session is active - no login forms should show
+                    hideAuthForms();
+                    
+                    // Don't show welcome notification on automatic page load check
+                    // Only show notifications on explicit user actions (login, register)
+                    
+                    // Fetch and display user info - NODE VIEW is the default view
+                    try {
+                        // Use entity_id from verify response, fallback to id
+                        const entityId = data.user.entity_id || data.user.id;
+                        
+                        if (!entityId) {
+                            console.error('❌ No entity ID in verify response:', data.user);
+                            clearToken();
+                            showAuthForms();
+                            return;
+                        }
+                        
+                        console.log('📡 Fetching user info for entity ID:', entityId);
+                        const userInfoResponse = await fetch(`${API_BASE}/user/${entityId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (!userInfoResponse.ok) {
+                            const errorText = await userInfoResponse.text();
+                            console.error('❌ User info fetch failed:', userInfoResponse.status, errorText);
+                            throw new Error(`HTTP ${userInfoResponse.status}: ${userInfoResponse.statusText}`);
+                        }
+                        
+                        const userInfoData = await userInfoResponse.json();
+                        console.log('📦 User info response:', userInfoData);
+                        
+                        if (userInfoData.success && userInfoData.data) {
+                            console.log('✅ User info fetched successfully, displaying NODE VIEW');
+                            
+                            // Wait for NODE VIEW component to be loaded, then show user info
+                            const showUserInfoWhenReady = () => {
+                                if (window.nodeViewInstance) {
+                                    console.log('✅ NODE VIEW component ready, showing user info');
+                                    showUserInfo(userInfoData.data);
+                                    return true;
+                                }
+                                return false;
+                            };
+                            
+                            // Try immediately
+                            if (!showUserInfoWhenReady()) {
+                                console.log('⏳ Waiting for NODE VIEW component to load...');
+                                // Wait for component to load with polling
+                                let attempts = 0;
+                                const maxAttempts = 100; // 10 seconds max wait (increased)
+                                const checkInterval = setInterval(() => {
+                                    attempts++;
+                                    if (showUserInfoWhenReady() || attempts >= maxAttempts) {
+                                        clearInterval(checkInterval);
+                                        if (attempts >= maxAttempts && !window.nodeViewInstance) {
+                                            console.error('❌ NODE VIEW component failed to load after timeout');
+                                            // Don't show auth forms - keep trying or show error
+                                            showNotification('NODE VIEW component failed to load. Please refresh.', 'error');
+                                        } else if (attempts >= maxAttempts) {
+                                            console.log('⚠️ Timeout reached but component exists, trying to show anyway');
+                                            // Try one more time
+                                            setTimeout(() => {
+                                                if (window.nodeViewInstance && userInfoData.data) {
+                                                    showUserInfo(userInfoData.data);
+                                                }
+                                            }, 500);
+                                        }
+                                    }
+                                }, 100);
+                            }
+                } else {
+                            console.error('❌ Failed to fetch user info - invalid response:', userInfoData);
+                            // Don't clear token immediately - might be a temporary issue
+                            showNotification('Could not load user information. Please try refreshing.', 'error');
+                            // Only clear token and show forms if it's a clear authentication error
+                            if (userInfoData.error && userInfoData.error.code === 40104) {
+                    clearToken();
+                                showAuthForms();
+                            }
+                        }
+                    } catch (err) {
+                        console.error('❌ Error fetching user info:', err);
+                        // Don't immediately clear token - might be network issue
+                        // Only clear if it's clearly an auth error
+                        if (err.message && err.message.includes('401')) {
+                            clearToken();
+                            showAuthForms();
+                        } else {
+                            showNotification('Network error. Please try refreshing.', 'error');
+                        }
+                    }
+                } else {
+                    // Token invalid or no user data, clear it and show auth forms
+                    console.log('❌ Token verification failed or no user data:', data);
+                    if (data.error) {
+                        console.log('Error details:', data.error);
+                    }
+                    clearToken();
+                    showAuthForms();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                clearToken();
+                showAuthForms();
+            }
+        }
+        
+        // Show auth forms
+        function showAuthForms() {
+            const authWrapper = document.getElementById('authPanelWrapper');
+            if (authWrapper) {
+                authWrapper.style.display = 'block';
+            } else {
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('sectionDivider').style.display = 'block';
+                document.getElementById('secretForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('secretTitle').style.display = 'block';
+            }
+            
+            // Hide NODE VIEW if visible
+            if (window.nodeViewInstance) {
+                window.nodeViewInstance.hide();
+            }
+            
+            // Hide ancestor NODE VIEW if visible
+            if (window.ancestorNodeViewInstance) {
+                window.ancestorNodeViewInstance.hide();
+            }
+            
+            window.currentEntityId = null;
+            window.currentAncestorEntityId = null;
+        }
+        
+        // Hide auth forms
+        function hideAuthForms() {
+            const authWrapper = document.getElementById('authPanelWrapper');
+            if (authWrapper) {
+                authWrapper.style.display = 'none';
+                return;
+            }
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('sectionDivider').style.display = 'none';
+            document.getElementById('secretForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('secretTitle').style.display = 'none';
+        }
+        
+        // Load NODE VIEW component first, then check auth status
+        let nodeViewInstance = null;
+        async function loadNodeViewComponent() {
+            try {
+                // Load HTML
+                const htmlResponse = await fetch('/components/node-view.html');
+                const htmlText = await htmlResponse.text();
+                
+                const ensureAuthWrapper = (panelContent) => {
+                    let authWrapper = document.getElementById('authPanelWrapper');
+                    if (!authWrapper) {
+                        authWrapper = document.createElement('div');
+                        authWrapper.id = 'authPanelWrapper';
+                        authWrapper.className = 'auth-panel-wrapper';
+                        const existingChildren = Array.from(panelContent.children);
+                        existingChildren.forEach((child) => {
+                            if (!child.classList.contains('node-view-panel') && !child.classList.contains('node-view-host')) {
+                                authWrapper.appendChild(child);
+                            }
+                        });
+                        panelContent.prepend(authWrapper);
+                    }
+                    return authWrapper;
+                };
+                
+                const ensureNodeViewHost = (panelContent, hostId) => {
+                    let host = document.getElementById(hostId);
+                    if (!host) {
+                        host = document.createElement('div');
+                        host.id = hostId;
+                        host.className = 'node-view-host';
+                        panelContent.appendChild(host);
+                    }
+                    return host;
+                };
+                
+                // Create container
+                const container = document.createElement('div');
+                container.innerHTML = htmlText;
+                const nodeViewHTML = container.querySelector('.node-view-panel');
+                
+                if (nodeViewHTML) {
+                    // Insert into the left panel content (same level as secret section)
+                    const panelContent = document.querySelector('.framer-window-left .panel-content');
+                    if (panelContent) {
+                        ensureAuthWrapper(panelContent);
+                        const leftHost = ensureNodeViewHost(panelContent, 'leftNodeViewHost');
+                        // Insert after the secret section
+                        const secretSection = document.getElementById('secretSection');
+                        if (secretSection && secretSection.parentNode) {
+                            leftHost.innerHTML = '';
+                            leftHost.appendChild(nodeViewHTML);
+                        } else {
+                            leftHost.innerHTML = '';
+                            leftHost.appendChild(nodeViewHTML);
+                        }
+                    }
+                    
+                    // Also load ancestor node-view for right side
+                    const ancestorContainer = document.createElement('div');
+                    ancestorContainer.innerHTML = htmlText;
+                    const ancestorNodeViewHTML = ancestorContainer.querySelector('.node-view-panel');
+                    
+                    if (ancestorNodeViewHTML) {
+                        // Update IDs to be unique for ancestor view
+                        const ancestorPanel = ancestorNodeViewHTML;
+                        ancestorPanel.id = 'ancestorNodeViewPanel';
+                        const ancestorContainerEl = ancestorPanel.querySelector('.node-view-container');
+                        if (ancestorContainerEl) {
+                            ancestorContainerEl.id = 'ancestorNodeViewContainer';
+                        }
+                        
+                        // Remove duplicate IDs inside ancestor view to avoid collisions
+                        ancestorPanel.querySelectorAll('[id]').forEach((el) => {
+                            if (el.id !== 'ancestorNodeViewPanel' && el.id !== 'ancestorNodeViewContainer') {
+                                el.removeAttribute('id');
+                            }
+                        });
+                        
+                        // Insert into the right panel content
+                        const rightPanelContent = document.querySelector('.framer-window-right .panel-content');
+                        if (rightPanelContent) {
+                            const rightHost = ensureNodeViewHost(rightPanelContent, 'rightNodeViewHost');
+                            rightHost.innerHTML = '';
+                            rightHost.appendChild(ancestorNodeViewHTML);
+                        }
+                    }
+                    
+                    // Load and initialize JavaScript
+                    const script = document.createElement('script');
+                    script.src = '/components/node-view.js';
+                    script.onload = () => {
+                        // Initialize NodeView instance for left side
+                        try {
+                            nodeViewInstance = new NodeView('nodeViewContainer');
+                            window.nodeViewInstance = nodeViewInstance; // Make globally available
+                            console.log('✅ NODE VIEW component initialized successfully');
+                            
+                            // Initialize NodeView instance for right side (ancestor)
+                            try {
+                                const ancestorNodeViewInstance = new NodeView('ancestorNodeViewContainer');
+                                window.ancestorNodeViewInstance = ancestorNodeViewInstance; // Make globally available
+                                console.log('✅ Ancestor NODE VIEW component initialized successfully');
+                                
+                                // Show placeholder so right panel is visible immediately
+                                window.ancestorNodeViewInstance.show({ status: 'Loading ancestor...' }, 'LOADING');
+                            } catch (error) {
+                                console.error('Error initializing Ancestor NODE VIEW component:', error);
+                            }
+                            
+                            // After component is loaded, check auth status
+                            // Use a small delay to ensure DOM is ready
+                            setTimeout(() => {
+                                console.log('🔍 Checking auth status after component load...');
+        checkAuthStatus();
+                            }, 150);
+                        } catch (error) {
+                            console.error('Error initializing NODE VIEW component:', error);
+                            // Still check auth status even if component failed
+                            checkAuthStatus();
+                        }
+                    };
+                    script.onerror = () => {
+                        console.error('Failed to load NODE VIEW component script');
+                        // Still check auth status even if script failed
+                        checkAuthStatus();
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    // If component failed to load, still check auth status
+                    checkAuthStatus();
+                }
+            } catch (error) {
+                console.error('Failed to load NODE VIEW component:', error);
+                // If component failed to load, still check auth status
+                checkAuthStatus();
+            }
+        }
+        
+        // Load component after DOM is ready, then check auth
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadNodeViewComponent);
+        } else {
+            loadNodeViewComponent();
         }
 
-        // Initialize framer drag functionality
+        // Framer divider drag functionality
         function initFramerDrag() {
             const divider = document.getElementById('framerDivider');
             const leftWindow = document.getElementById('leftWindow');
             const rightWindow = document.getElementById('rightWindow');
-            const container = document.getElementById('framerContainer');
+            const container = document.querySelector('.framer-glass');
             
             let isDragging = false;
+            let lastIsMobile = null;
             
+            // Check if user is logged in (NODE VIEW is visible)
+            function isUserLoggedIn() {
+                const nodeView = document.getElementById('nodeViewContainer');
+                return nodeView && nodeView.style.display !== 'none';
+            }
+            
+            // Set initial layout based on screen size
+            function setLayout(isMobile, percentage = null) {
+                // If user is logged in, use 50/50 split
+                const userLoggedIn = isUserLoggedIn();
+                const defaultPct = userLoggedIn ? 50 : (isMobile ? 70 : 30);
+                
+                if (isMobile) {
+                    // Mobile: vertical split (top/bottom)
+                    const pct = percentage !== null ? percentage : defaultPct;
+                    leftWindow.style.width = '100%';
+                    rightWindow.style.width = '100%';
+                    leftWindow.style.height = `calc(${pct}% - 0.25rem)`;
+                    rightWindow.style.height = `calc(${100 - pct}% - 0.25rem)`;
+                    divider.style.left = '50%';
+                    divider.style.top = `${pct}%`;
+                    divider.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+                } else {
+                    // Desktop: horizontal split (left/right)
+                    const pct = percentage !== null ? percentage : defaultPct;
+                    leftWindow.style.height = '100%';
+                    rightWindow.style.height = '100%';
+                    leftWindow.style.width = `calc(${pct}% - 0.375rem)`;
+                    rightWindow.style.width = `calc(${100 - pct}% - 0.375rem)`;
+                    divider.style.top = '50%';
+                    divider.style.left = `${pct}%`;
+                    divider.style.transform = 'translate(-50%, -50%)';
+                }
+            }
+            
+            // Make setLayout available globally for showUserInfo
+            window.setLayout = setLayout;
+            
+            // Initialize layout
+            function initLayout() {
+                const isMobile = window.innerWidth <= 768;
+                setLayout(isMobile);
+                lastIsMobile = isMobile;
+            }
+            
+            // Reset layout on window resize
+            function resetLayout() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile !== lastIsMobile) {
+                    setLayout(isMobile);
+                    lastIsMobile = isMobile;
+                }
+            }
+            
+            // Initialize on load
+            initLayout();
+            window.addEventListener('resize', resetLayout);
+            
+            // Drag events
             divider.addEventListener('mousedown', startDrag);
-            divider.addEventListener('touchstart', startDrag);
+            divider.addEventListener('touchstart', startDrag, { passive: false });
             
             function startDrag(e) {
                 isDragging = true;
                 e.preventDefault();
+                e.stopPropagation();
                 
                 document.addEventListener('mousemove', drag);
                 document.addEventListener('mouseup', stopDrag);
-                document.addEventListener('touchmove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
                 document.addEventListener('touchend', stopDrag);
             }
             
             function drag(e) {
                 if (!isDragging) return;
+                e.preventDefault();
                 
                 const containerRect = container.getBoundingClientRect();
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
-                    // Vertical split for mobile
+                    // Vertical split for mobile (dragging changes height)
                     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                     const offsetY = clientY - containerRect.top;
                     const percentage = (offsetY / containerRect.height) * 100;
                     
-                    // Constrain between 10% and 90%
-                    const constrainedPercentage = Math.max(10, Math.min(90, percentage));
+                    // Constrain between 20% and 80%
+                    const constrainedPercentage = Math.max(20, Math.min(80, percentage));
                     
                     leftWindow.style.height = `calc(${constrainedPercentage}% - 0.25rem)`;
                     rightWindow.style.height = `calc(${100 - constrainedPercentage}% - 0.25rem)`;
-                    
-                    // Move divider to cursor position on mobile (vertically)
                     divider.style.top = `${constrainedPercentage}%`;
                 } else {
-                    // Horizontal split for desktop
+                    // Horizontal split for desktop (dragging changes width)
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     const offsetX = clientX - containerRect.left;
                     const percentage = (offsetX / containerRect.width) * 100;
                     
-                    // Constrain between 10% and 90%
-                    const constrainedPercentage = Math.max(10, Math.min(90, percentage));
+                    // Constrain between 20% and 80%
+                    const constrainedPercentage = Math.max(20, Math.min(80, percentage));
                     
                     leftWindow.style.width = `calc(${constrainedPercentage}% - 0.375rem)`;
                     rightWindow.style.width = `calc(${100 - constrainedPercentage}% - 0.375rem)`;
-                    
-                    // Move divider to cursor position on desktop (horizontally)
                     divider.style.left = `${constrainedPercentage}%`;
                 }
             }
@@ -184,58 +1439,55 @@
                 document.removeEventListener('touchend', stopDrag);
             }
         }
+        
+        // Initialize framer drag
+        initFramerDrag();
 
-        // Load components on page load
-        loadFooterComponent();
-        loadFramerComponent();
-
-        // Initialize logo gradient animation
-        function initLogoGradient() {
-            const canvas = document.getElementById('logoCanvas');
-            const logo = document.getElementById('logo');
-            const ctx = canvas.getContext('2d');
+        // Gradient animation for logo overlay
+        const canvas = document.getElementById('logoCanvas');
+        const logo = document.getElementById('logo');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = logo.offsetWidth;
+            canvas.height = logo.offsetHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        let gradientOffset = 0;
+        function animateGradient() {
+            gradientOffset += 0.005;
+            if (gradientOffset > 1) gradientOffset = 0;
             
-            function resizeCanvas() {
-                canvas.width = logo.offsetWidth;
-                canvas.height = logo.offsetHeight;
-            }
+            const gradient = ctx.createLinearGradient(
+                0, 0, 
+                canvas.width, canvas.height
+            );
             
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+            const colors = ['#F9E9B8', '#F7D9C7', '#F1C9BF', '#EFE7DB', '#F6F1DE'];
+            colors.forEach((color, i) => {
+                const position = (i / (colors.length - 1) + gradientOffset) % 1;
+                gradient.addColorStop(position, color);
+            });
             
-            let gradientOffset = 0;
-            function animateGradient() {
-                gradientOffset += 0.005;
-                if (gradientOffset > 1) gradientOffset = 0;
-                
-                const gradient = ctx.createLinearGradient(
-                    0, 0, 
-                    canvas.width, canvas.height
-                );
-                
-                const colors = ['#F9E9B8', '#F7D9C7', '#F1C9BF', '#EFE7DB', '#F6F1DE'];
-                colors.forEach((color, i) => {
-                    const position = (i / (colors.length - 1) + gradientOffset) % 1;
-                    gradient.addColorStop(position, color);
-                });
-                
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.globalCompositeOperation = 'destination-in';
-                ctx.drawImage(logo, 0, 0, canvas.width, canvas.height);
-                ctx.globalCompositeOperation = 'source-over';
-                
-                requestAnimationFrame(animateGradient);
-            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.drawImage(logo, 0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'source-over';
             
-            logo.onload = () => {
-                animateGradient();
-            };
-            
-            if (logo.complete) {
-                animateGradient();
-            }
+            requestAnimationFrame(animateGradient);
+        }
+        
+        logo.onload = () => {
+            animateGradient();
+        };
+        
+        if (logo.complete) {
+            animateGradient();
         }
     </script>
 </body>

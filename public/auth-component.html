@@ -1,61 +1,197 @@
-<!-- Section I: User/Password Login -->
-<div class="login-section">
-    <h2 class="section-title">GET IN</h2>
-    <form id="loginForm" class="login-form">
-        <div class="form-group">
-            <div class="input-wrapper">
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    class="form-input" 
-                    placeholder="username"
-                    required
-                >
-                <span class="material-icons input-icon">person</span>
+<!-- Auth Component - Loadable authentication panel -->
+<div class="welcome-panel">
+    <div class="panel-glass">
+        <div class="panel-content">
+            
+            <!-- Section I: User/Password Login -->
+            <div class="login-section">
+                <h2 class="section-title">GET IN</h2>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                class="form-input" 
+                                placeholder="username"
+                                required
+                                autocomplete="username"
+                            >
+                            <span class="material-icons input-icon">person</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                class="form-input" 
+                                placeholder="password"
+                                required
+                                autocomplete="current-password"
+                            >
+                            <span class="material-icons input-icon">lock</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-metallic" id="loginBtn">
+                        <span>Login</span>
+                    </button>
+                </form>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="input-wrapper">
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    class="form-input" 
-                    placeholder="password"
-                    required
-                >
-                <span class="material-icons input-icon">lock</span>
+
+            <div class="section-divider">
+                <button type="button" class="btn-qr btn-metallic" id="qrBtn">
+                    <span class="material-icons">qr_code</span>
+                </button>
             </div>
+
+            <!-- Section II: Secret Access -->
+            <div class="secret-section">
+                <h2 class="section-title">I'VE GOT A SECRET</h2>
+                <form id="secretForm" class="secret-form">
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <input 
+                                type="text" 
+                                id="secret" 
+                                name="secret" 
+                                class="form-input" 
+                                placeholder="secret"
+                                required
+                            >
+                            <span class="material-icons input-icon">key</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-secondary btn-metallic" id="secretBtn">
+                        <span>Go</span>
+                    </button>
+                </form>
+            </div>
+
         </div>
-        <button type="submit" class="btn-primary btn-metallic">Login</button>
-    </form>
+    </div>
 </div>
 
-<div class="section-divider">
-    <button type="button" class="btn-qr btn-metallic">
-        <span class="material-icons">qr_code</span>
-    </button>
-</div>
+<script>
+(function() {
+    // API Base URL
+    const API_BASE = '/api/identity';
+    
+    // Get global notification function or create local one
+    const showNotification = window.showNotification || function(message, type) {
+        console.log(`[${type}] ${message}`);
+        alert(message);
+    };
+    
+    // Set button loading state
+    function setButtonLoading(button, loading) {
+        if (loading) {
+            button.classList.add('btn-loading');
+            button.disabled = true;
+        } else {
+            button.classList.remove('btn-loading');
+            button.disabled = false;
+        }
+    }
+    
+    // Store token in localStorage
+    function storeToken(token) {
+        localStorage.setItem('pathos_token', token);
+    }
+    
+    // Handle login form submission
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (!username || !password) {
+                showNotification('Please enter username and password', 'error');
+                return;
+            }
+            
+            setButtonLoading(loginBtn, true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    storeToken(data.token);
+                    showNotification('Login successful! Welcome back.', 'success');
+                    console.log('Logged in as:', data.entity);
+                } else {
+                    showNotification(data.error?.message || 'Login failed', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Connection error. Please try again.', 'error');
+            } finally {
+                setButtonLoading(loginBtn, false);
+            }
+        });
+    }
 
-<!-- Section II: Secret Access -->
-<div class="secret-section">
-    <h2 class="section-title">I'VE GOT A SECRET</h2>
-    <form id="secretForm" class="secret-form">
-        <div class="form-group">
-            <div class="input-wrapper">
-                <input 
-                    type="text" 
-                    id="secret" 
-                    name="secret" 
-                    class="form-input" 
-                    placeholder="secret"
-                    required
-                >
-                <span class="material-icons input-icon">key</span>
-            </div>
-        </div>
-        <button type="submit" class="btn-secondary btn-metallic">Go</button>
-    </form>
-</div>
+    // Handle secret form submission
+    const secretForm = document.getElementById('secretForm');
+    if (secretForm) {
+        secretForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const secret = document.getElementById('secret').value.trim();
+            const secretBtn = document.getElementById('secretBtn');
+            
+            if (!secret) {
+                showNotification('Please enter a secret', 'error');
+                return;
+            }
+            
+            setButtonLoading(secretBtn, true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/secret`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ secret })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    storeToken(data.token);
+                    showNotification('Secret verified! Access granted.', 'success');
+                    console.log('Authenticated via secret:', data.entity);
+                } else {
+                    showNotification(data.error?.message || 'Invalid secret', 'error');
+                }
+            } catch (error) {
+                console.error('Secret auth error:', error);
+                showNotification('Connection error. Please try again.', 'error');
+            } finally {
+                setButtonLoading(secretBtn, false);
+            }
+        });
+    }
 
+    // Handle QR button click
+    const qrBtn = document.getElementById('qrBtn');
+    if (qrBtn) {
+        qrBtn.addEventListener('click', () => {
+            showNotification('QR authentication coming soon!', 'success');
+        });
+    }
+})();
+</script>

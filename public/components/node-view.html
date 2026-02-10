@@ -1,0 +1,54 @@
+<!-- NODE VIEW Component -->
+<div class="node-view-panel" id="nodeViewPanel" style="display: none;">
+    <div class="node-view-container" id="nodeViewContainer">
+    <!-- Path Control Bar -->
+    <div class="node-view-path-bar">
+        <div class="path-display-bar">
+            <span class="node-view-title-icon material-icons" id="nodeViewTitleIcon">route</span>
+            <h2 class="node-view-title" id="nodeViewTitle">NODE VIEW</h2>
+            <span class="path-icon material-icons" id="nodeViewPathIcon">route</span>
+            <span class="path-content" id="nodeViewPath">COF9D300E1B2825345581835F13CA133152/6/9/981060040098098098098098098098...</span>
+        </div>
+        <div class="path-control-buttons">
+            <button class="path-btn path-btn-refresh" id="nodeViewRefreshBtn" title="Refresh entity">
+                <span class="material-icons">refresh</span>
+            </button>
+            <button class="path-btn path-btn-copy" id="nodeViewCopyBtn" title="Copy path">
+                <span class="material-icons">content_copy</span>
+            </button>
+            <button class="path-btn path-btn-pin" id="nodeViewPinBtn" title="Pin path">
+                <span class="material-icons">push_pin</span>
+            </button>
+            <button class="path-btn path-btn-save" id="nodeViewSaveBtn" title="Save">
+                <span class="material-icons">save</span>
+            </button>
+            <button class="path-btn path-btn-more" id="nodeViewMoreBtn" title="More options">
+                <span class="material-icons">more_vert</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Content Display Area -->
+    <div class="node-view-content">
+        <div class="node-view-display-box" id="nodeViewDisplayBox">
+            <pre id="nodeViewJson" class="node-view-json"></pre>
+            <div class="node-view-scroll-handle" id="nodeViewScrollHandle"></div>
+        </div>
+    </div>
+    
+    <!-- More Menu Dropdown (hidden initially) -->
+    <div class="node-view-more-menu" id="nodeViewMoreMenu" style="display: none;">
+        <button class="more-menu-item" id="nodeViewExportBtn" data-action="export">
+            <span class="material-icons">download</span>
+            <span>Export JSON</span>
+        </button>
+        <button class="more-menu-item" id="nodeViewMoreRefreshBtn" data-action="refresh">
+            <span class="material-icons">refresh</span>
+            <span>Refresh</span>
+        </button>
+        <button class="more-menu-item" id="nodeViewSettingsBtn" data-action="settings">
+            <span class="material-icons">settings</span>
+            <span>Settings</span>
+        </button>
+    </div>
+</div>

@@ -2,7 +2,7 @@
 
 ## System Overview
 
-This database implements a hierarchical content management and organizational system with polymorphic relationships. The system manages entities (users/individuals), organizations, posts, time-based events (tevents), and their interconnections through labels and properties. The architecture supports multi-level hierarchies via ancestor relationships and flexible ownership through polymorphic associations.
+This database implements a hierarchical content management and organizational system with polymorphic relationships. The system manages entities (users/individuals), organizations, posts, time-based events (tevents), and their interconnections through labels and properties. The architecture supports multi-level hierarchies via ancestor relationships and flexible ownership through polymorphic associations. Additionally, a comprehensive logging system (tlog) tracks all temporal actions within the system with dual time representation (Unix timestamps and PathChain moments).
 
 ## Core Concepts
 
@@ -274,6 +274,79 @@ Labels and properties provide flexible categorization and metadata. Labels are h
 
 ---
 
+### log_type
+**Purpose**: Lookup table defining valid log types for the logging system. Categorizes different types of log entries (system logs, user actions, API calls, errors, security events, audits).
+
+**Fields**:
+- `id` (INT, PK, AUTO_INCREMENT): Primary key
+- `type_name` (VARCHAR(50), UNIQUE): Log type identifier
+- `created_at` (TIMESTAMP): Creation timestamp
+
+**Data Flow**: Pre-populated with standard log types: 'system', 'user_action', 'api_call', 'error', 'security', 'audit'. Referenced by `tlog` table via `log_type_id` to categorize log entries.
+
+**Relationships**: Referenced by tlog.log_type_id.
+
+---
+
+### action_type
+**Purpose**: Lookup table defining valid action types for the logging system. Standardizes action names across the application (CRUD operations, authentication actions, etc.).
+
+**Fields**:
+- `id` (INT, PK, AUTO_INCREMENT): Primary key
+- `type_name` (VARCHAR(50), UNIQUE): Action type identifier
+- `created_at` (TIMESTAMP): Creation timestamp
+
+**Data Flow**: Pre-populated with standard actions: 'create', 'read', 'update', 'delete', 'login', 'logout', 'register', 'view'. Referenced by `tlog` table via `action_type_id` to record what action was performed.
+
+**Relationships**: Referenced by tlog.action_type_id.
+
+---
+
+### tlog
+**Purpose**: Main logging table for tracking temporal actions within the system. Records who performed an action, what type of action, when it occurred (dual time representation), and optionally who received the action and what path was involved. Temporal logs (tlog) provide comprehensive audit trails and action history.
+
+**Fields**:
+- `id` (INT, PK, AUTO_INCREMENT): Primary key
+- `owner_id` (INT, NULLABLE, INDEXED): Foreign key to entity.id (who performed the action)
+- `log_type_id` (INT, NOT NULL, INDEXED): Foreign key to log_type.id
+- `action_type_id` (INT, NOT NULL, INDEXED): Foreign key to action_type.id
+- `start_timestamp` (TIMESTAMP, NULLABLE): When the action started (Unix timestamp)
+- `start_moment` (TEXT, NOT NULL): PathChain moment reference for start time
+- `finish_timestamp` (TIMESTAMP, NULLABLE): When the action finished (Unix timestamp)
+- `finish_moment` (TEXT, NOT NULL): PathChain moment reference for finish time
+- `receiver_id` (INT, NULLABLE, INDEXED): Foreign key to entity.id (who received the action)
+- `path_id` (TEXT, NULLABLE): Reference to a path within the system (PathChain path or URL)
+- `metadata` (TEXT, NULLABLE): Additional metadata as JSON string
+- `created_at` (TIMESTAMP, INDEXED): Log entry creation timestamp
+
+**Data Flow**:
+- Created when an action occurs in the system
+- `owner_id` can be null for system-generated actions (no specific user)
+- `receiver_id` is optional and used when the action involves another entity (e.g., entity A messages entity B)
+- Both timestamp and moment fields provide dual time representation: timestamps for efficient queries, moments for PathChain integration
+- `metadata` can store additional context as JSON (e.g., request details, error messages, IP addresses)
+- Indexed on timestamps and created_at for efficient time-range queries
+- Foreign keys to log_type and action_type ensure data integrity
+
+**Relationships**:
+- Foreign key: tlog.owner_id -> entity.id (nullable, who performed the action)
+- Foreign key: tlog.receiver_id -> entity.id (nullable, who received the action)
+- Foreign key: tlog.log_type_id -> log_type.id (required)
+- Foreign key: tlog.action_type_id -> action_type.id (required)
+- One-to-many: entity.id -> tlog.owner_id (entity can perform many actions)
+- One-to-many: entity.id -> tlog.receiver_id (entity can receive many actions)
+
+**Use Cases**:
+- Audit trail: Track all user actions for security and compliance
+- Performance monitoring: Measure action duration using start/finish timestamps
+- User activity: Retrieve all actions performed by a specific entity
+- Security events: Log authentication attempts, permission changes, data access
+- API monitoring: Track API calls, response times, and errors
+- System health: Log system-level events and errors
+- PathChain integration: Store PathChain moment references for temporal consistency
+
+---
+
 ## Junction Tables
 
 ### entity_label
@@ -488,6 +561,13 @@ LEFT JOIN tevent t ON ot.type_name = 'tevent' AND p.owner_id = t.id
 - `idx_tevent_owner` on (owner_id, owner_type_id) for efficient owner queries
 - `idx_secret_owner` on (owner_id, owner_type_id) for efficient owner queries
 - `idx_tevent_timestamps` on (start_timestamp, finish_timestamp) for time-range queries
+- `idx_tlog_timestamps` on (start_timestamp, finish_timestamp) for log time-range queries
+
+### Logging System Indexes
+- `idx_tlog_owner` on owner_id for efficient log queries by entity
+- `idx_tlog_receiver` on receiver_id for efficient log queries by receiver entity
+- `idx_tlog_created` on created_at for chronological log retrieval
+- `log_type_id` and `action_type_id` indexed for filtering logs by type
 
 ## Model Implementation Notes
 

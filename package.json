@@ -11,13 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "mariadb": "^3.2.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "cors": "^2.8.5"
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "mariadb": "^3.4.5",
+    "pathchain": "^1.1.38",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
   }
 }
-

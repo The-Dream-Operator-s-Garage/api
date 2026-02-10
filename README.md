@@ -36,7 +36,21 @@ DB_PORT=3306
 DB_USER=your_username
 DB_PASSWORD=your_password
 DB_NAME=pathos_db
+
+# For AWS RDS MariaDB, set SSL to true:
+# DB_SSL=true
 ```
+
+**Database Auto-Initialization**: The application will automatically:
+- Create the database if it doesn't exist
+- Run the SQL schema file (`pathwjzs_tpathos.sql`) to create all tables
+- Handle connection timeouts and retries for AWS RDS
+
+**AWS RDS Configuration**: When connecting to AWS RDS, the application automatically:
+- Enables SSL connections (required by AWS RDS)
+- Increases connection timeouts to 60 seconds
+- Implements retry logic for connection failures
+- Uses self-signed certificate handling for RDS
 
 3. Add your assets to the `/public` directory:
    - `starnoise.svg` - Background image
